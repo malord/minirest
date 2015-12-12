@@ -51,6 +51,8 @@ public class RestRequest {
         query = this.url.getQuery();
         if (query == null) {
             query = "";
+        } else {
+            query = "?" + query;
         }
     }
 
