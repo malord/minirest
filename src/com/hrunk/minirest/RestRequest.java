@@ -15,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * My attempt at a pleasant REST interface.
@@ -41,6 +42,7 @@ public class RestRequest {
     private String userAgent = null;
     private RestResponse response;
     private boolean throwOnError = true;
+    private boolean manualGunzip = false;
 
     // If there are any more HTTP headers, put them in a Map
 
@@ -123,6 +125,12 @@ public class RestRequest {
         if (userAgent != null) {
             http.setRequestProperty("User-Agent", userAgent);
         }
+        if (url.getProtocol().equalsIgnoreCase("https")) {
+            http.setRequestProperty("Accept-Encoding", "gzip");
+            manualGunzip = true;
+        } else {
+            manualGunzip = false;
+        }
 
         if (Rest.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder(256);
@@ -154,6 +162,13 @@ public class RestRequest {
         }
 
         response.status = http.getResponseCode();
+
+        if (manualGunzip) {
+            String encoding = http.getHeaderField("content-encoding");
+            if (encoding == null || ! encoding.equalsIgnoreCase("gzip")) {
+                manualGunzip = false;
+            }
+        }
 
         if (Rest.isTraceEnabled()) {
             Rest.log("Response: " + response.status + " for: " + url.toString());
@@ -267,7 +282,11 @@ public class RestRequest {
 
     private InputStream getInputStreamOrErrorStream() {
         try {
-            return http.getInputStream();
+            InputStream inputStream = http.getInputStream();
+            if (manualGunzip) {
+                return new GZIPInputStream(inputStream);
+            }
+            return inputStream;
         } catch (IOException e) {
             return http.getErrorStream();
         }
