@@ -62,7 +62,7 @@ public class RestRequest {
         try {
             authorization = Base64.encodeToString((user + ":" + password).getBytes("UTF-8"), Base64.NO_WRAP);
         } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, "" + e);
+            Log.e(TAG, "", e);
         }
         return this;
     }
@@ -90,7 +90,7 @@ public class RestRequest {
             body = object.toString().getBytes("UTF-8");
             contentType = JSON_CONTENT_TYPE;
         } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, "" + e);
+            Log.e(TAG, "", e);
         }
         return this;
     }
